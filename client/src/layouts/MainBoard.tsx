@@ -17,7 +17,7 @@ import { ModalDelete } from "../components/ModalDelete";
 import { ModalTaskDetail } from "../components/ModalTaskDetail";
 import { ModalLabel } from "../components/ModalLabel";
 import { ModalCreateLabel } from "../components/ModalCreateLabel";
-import { FilterDropdown } from "../components/FIlterDropdown";
+import { FilterDropdown } from "../components/FilterDropdown";
 import { ModalAddDate } from "../components/ModalAddDate";
 
 interface BoardContextType {
@@ -447,7 +447,7 @@ export const MainBoard = () => {
 			toast.error("Ngày bắt đầu không được lớn hơn ngày kết thúc");
 			return;
 		}
-		if (dueDate && dueDate <= today) {
+		if (dueDate && dueDate < today) {
 			toast.error("Ngày kết thúc không được bé hơn ngày hiện tại");
 			return;
 		}

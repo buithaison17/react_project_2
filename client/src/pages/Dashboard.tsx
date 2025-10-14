@@ -103,6 +103,7 @@ export const Dashboard = () => {
 				navigate(`/starred-board/${board.id}`);
 				return;
 			case "close":
+				navigate(`/close-board/${board.id}`);
 				return;
 		}
 	};
