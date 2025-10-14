@@ -8,7 +8,7 @@ import { CardAddList } from "../components/CardAddList";
 import { ModalAddList } from "../components/ModalAddList";
 import type { Board, List, Tag, Task, User } from "../utils/type";
 import { useNavigate, useOutletContext } from "react-router-dom";
-import { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { Bounce, toast, ToastContainer } from "react-toastify";
 import { useDispatch } from "react-redux";
 import type { AppDispatch } from "../store/store";
@@ -17,6 +17,8 @@ import { ModalDelete } from "../components/ModalDelete";
 import { ModalTaskDetail } from "../components/ModalTaskDetail";
 import { ModalLabel } from "../components/ModalLabel";
 import { ModalCreateLabel } from "../components/ModalCreateLabel";
+import { FilterDropdown } from "../components/FIlterDropdown";
+import { ModalAddDate } from "../components/ModalAddDate";
 
 interface BoardContextType {
 	currentUser: User;
@@ -115,6 +117,8 @@ export const MainBoard = () => {
 			description: "",
 			status: "pending",
 			tags: [],
+			created_at: new Date().toISOString(),
+			due_date: "",
 		};
 		const listUpdates: List = {
 			...list,
@@ -342,6 +346,163 @@ export const MainBoard = () => {
 				return;
 		}
 	};
+	// State quản lí lọc
+	const [onFilter, setOnFilter] = useState(false);
+	const toggleFilter = (): void => {
+		setOnFilter(!onFilter);
+	};
+	const [inputFilter, setInputFilter] = useState({
+		keyword: "",
+		cardStatus: "",
+		dueDate: "",
+	});
+	const handleChangeInputFilter = (
+		e: React.ChangeEvent<HTMLInputElement>
+	): void => {
+		const { name, value } = e.target;
+		if (name === "keyword") {
+			setInputFilter({ ...inputFilter, keyword: value });
+		} else if (name === "cardStatus") {
+			setInputFilter((prev) => ({
+				...prev,
+				cardStatus: prev.cardStatus !== value ? value : "",
+			}));
+		} else {
+			setInputFilter((prev) => ({
+				...prev,
+				dueDate: prev.dueDate !== value ? value : "",
+			}));
+		}
+	};
+	const listFilter = useMemo(() => {
+		const { keyword, dueDate, cardStatus } = inputFilter;
+		if (!currentBoard) return [];
+		if (!keyword.trim() && !dueDate && !cardStatus) {
+			return currentBoard.lists;
+		}
+		let filter = currentBoard.lists.filter((list) =>
+			list.title.toLowerCase().includes(keyword.toLowerCase().trim())
+		);
+		if (cardStatus) {
+			filter = filter.map((list) => ({
+				...list,
+				tasks: list.tasks.filter((task) => task.status === cardStatus),
+			}));
+		}
+		if (dueDate) {
+			if (dueDate === "noDates") {
+				filter = filter.map((list) => ({
+					...list,
+					tasks: list.tasks.filter((task) => !task.due_date),
+				}));
+			}
+		}
+		if (dueDate) {
+			if (dueDate === "noDates") {
+				filter = filter.map((list) => ({
+					...list,
+					tasks: list.tasks.filter((task) => !task.due_date),
+				}));
+			} else if (dueDate === "overdue") {
+				const today = new Date();
+				today.setHours(0, 0, 0, 0);
+				filter = filter.map((list) => ({
+					...list,
+					tasks: list.tasks.filter((task) => {
+						const due = new Date(task.due_date);
+						due.setHours(0, 0, 0, 0);
+						return due < today;
+					}),
+				}));
+			} else {
+				const today = new Date();
+				today.setHours(0, 0, 0, 0);
+				const tomorrow = new Date(today);
+				tomorrow.setDate(today.getDate() + 1);
+				filter = filter.map((list) => ({
+					...list,
+					tasks: list.tasks.filter((task) => {
+						const due = new Date(task.due_date);
+						due.setHours(0, 0, 0, 0);
+						return due.getTime() === tomorrow.getTime();
+					}),
+				}));
+			}
+		}
+		return filter;
+	}, [currentBoard, inputFilter]);
+	// Thêm date cho task
+	const [addDate, setAddDate] = useState<{ list: List; task: Task } | null>(
+		null
+	);
+	const onAddDate = (date: {
+		startDate: Date | null;
+		dueDate: Date | null;
+	}): void => {
+		const { startDate, dueDate } = date;
+		const today = new Date();
+		if (!dueDate) return;
+		if (!addDate) return;
+		if (startDate && dueDate && startDate > dueDate) {
+			toast.error("Ngày bắt đầu không được lớn hơn ngày kết thúc");
+			return;
+		}
+		if (dueDate && dueDate <= today) {
+			toast.error("Ngày kết thúc không được bé hơn ngày hiện tại");
+			return;
+		}
+		const taskUpdates: Task = {
+			...addDate.task,
+			due_date: dueDate.toISOString(),
+		};
+		const listUpdates: List = {
+			...addDate.list,
+			tasks: addDate.list.tasks.map((t) =>
+				t.id === addDate.task.id ? taskUpdates : t
+			),
+		};
+		const boardUpdates: Board = {
+			...currentBoard,
+			lists: currentBoard.lists.map((item) =>
+				item.id === addDate.list.id ? listUpdates : item
+			),
+		};
+		const updates: User = {
+			...currentUser,
+			boards: currentUser.boards.map((board) =>
+				board.id === currentBoard.id ? boardUpdates : board
+			),
+		};
+		toast.success("Thêm ngày thành công");
+		dispatch(editUser(updates));
+		setTaskDetail({ ...taskDetail, list: listUpdates, task: taskUpdates });
+		setAddDate(null);
+	};
+	// Đóng board
+	const [closeBoard, setCloseBoard] = useState(false);
+	const onCloseBoard = (): void => {
+		const temp: Board = { ...currentBoard };
+		const boardUpdates: Board = {
+			...currentBoard,
+			type: "close",
+		};
+		const updates: User = {
+			...currentUser,
+			boards: currentUser.boards.map((board) =>
+				board.id === currentBoard.id ? boardUpdates : board
+			),
+		};
+		dispatch(editUser(updates));
+		setCloseBoard(false);
+		switch (temp.type) {
+			case "normal":
+				navigate("/board");
+				return;
+			case "starred":
+				navigate("/starred-board");
+				return;
+		}
+	};
 	return (
 		<div className="flex-1">
 			<ToastContainer
@@ -366,7 +527,7 @@ export const MainBoard = () => {
 						<StarBorderIcon
 							fontSize="small"
 							className={
-								currentBoard.type === "starred" ? "text-yellow-400" : ""
+								currentBoard?.type === "starred" ? "text-yellow-400" : ""
 							}
 						></StarBorderIcon>
 					</span>
@@ -379,21 +540,35 @@ export const MainBoard = () => {
 							<img src={TableIcon} className="w-[16px] h-[16px]" alt="" />
 							<div className="text-[14px] font-medium">Table</div>
 						</div>
-						<div className="flex items-center gap-2 px-2 py-1 cursor-pointer">
+						<div
+							onClick={() => setCloseBoard(true)}
+							className="flex items-center gap-2 px-2 py-1 cursor-pointer"
+						>
 							<img src={CloseIcon} className="w-[16px] h-[16px]" alt="" />
 							<div className="text-[14px] font-medium">Close this board</div>
 						</div>
 					</div>
 				</div>
-				<div className="flex gap-2 items-center">
+				<div
+					onClick={toggleFilter}
+					className="flex gap-2 items-center relative"
+				>
 					<span className="cursor-pointer">
 						<FilterListOutlinedIcon fontSize="small"></FilterListOutlinedIcon>
 					</span>
 					<div className="text-[14px] font-medium text-[#172B4D]">Filters</div>
+					{onFilter && (
+						<FilterDropdown
+							onClick={(e) => e.stopPropagation()}
+							onClose={toggleFilter}
+							inputFilter={inputFilter}
+							handleChangeInput={handleChangeInputFilter}
+						></FilterDropdown>
+					)}
 				</div>
 			</div>
 			<div className="p-4 grid grid-cols-4 gap-4 items-start">
-				{currentBoard?.lists.map((list) => (
+				{listFilter?.map((list) => (
 					<CardList
 						key={list.id}
 						list={list}
@@ -436,6 +611,14 @@ export const MainBoard = () => {
 					viewLabels={() => {
 						setViewLabels({
 							...viewLabels,
+							list: taskDetail.list,
+							task: taskDetail.task,
+						});
+						setTaskDetail(null);
+					}}
+					handleDate={() => {
+						setAddDate({
+							...addDate,
 							list: taskDetail.list,
 							task: taskDetail.task,
 						});
@@ -514,6 +697,26 @@ export const MainBoard = () => {
 					onSubmit={onAddLabel}
 					isEdit={editLabel?.tag}
 				></ModalCreateLabel>
+			)}
+			{addDate && (
+				<ModalAddDate
+					task={addDate.task}
+					onClose={() => {
+						setTaskDetail({
+							...taskDetail,
+							list: addDate.list,
+							task: addDate.task,
+						});
+						setAddDate(null);
+					}}
+					onAdd={(date) => onAddDate(date)}
+				></ModalAddDate>
+			)}
+			{closeBoard && (
+				<ModalDelete
+					onSubmit={onCloseBoard}
+					onClose={() => setCloseBoard(false)}
+				></ModalDelete>
 			)}
 		</div>
 	);

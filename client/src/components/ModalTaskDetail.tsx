@@ -4,7 +4,7 @@ import LabelIcon from "../assets/icons/label-icon.png";
 import DateIcon from "../assets/icons/date-icon.png";
 import DeleteIcon from "../assets/icons/delete-icon.png";
 import MDEditor from "@uiw/react-md-editor";
-import EditIcon from "@mui/icons-material/Edit";	
+import EditIcon from "@mui/icons-material/Edit";
 import type { Task } from "../utils/type";
 import { useState } from "react";
 
@@ -14,6 +14,7 @@ interface Props {
 	onSubmit: (title: string, description: string) => void;
 	handleDelete: () => void;
 	viewLabels: () => void;
+	handleDate: () => void;
 }
 
 export const ModalTaskDetail = ({
@@ -21,6 +22,7 @@ export const ModalTaskDetail = ({
 	task,
 	onSubmit,
 	handleDelete,
+	handleDate,
 	viewLabels,
 }: Props) => {
 	const [inputState, setInputState] = useState({
@@ -85,7 +87,10 @@ export const ModalTaskDetail = ({
 								Label
 							</div>
 						</div>
-						<div className="flex items-center gap-2 w-[168px] px-3 py-2 bg-gray-200 rounded cursor-pointer">
+						<div
+							onClick={handleDate}
+							className="flex items-center gap-2 w-[168px] px-3 py-2 bg-gray-200 rounded cursor-pointer"
+						>
 							<img src={DateIcon} className="w-[16px] h-[16px]" alt="" />
 							<div className="text-[14px] text-[#172B4D] font-medium">
 								Dates

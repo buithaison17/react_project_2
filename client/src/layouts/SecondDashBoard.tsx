@@ -53,7 +53,7 @@ export const SecondDashbaord = () => {
 						</div>
 					</div>
 				</div>
-				<div className="grid grid-cols-4 gap-4 mt-3">
+				<div className="grid grid-cols-4 gap-4 mt-3 max-sm:grid-cols-2">
 					{type === "board" &&
 						currentUser?.boards.map((board) => (
 							<CardDasboard

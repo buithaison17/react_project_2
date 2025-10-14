@@ -9,6 +9,7 @@ import { useDispatch, useSelector } from "react-redux";
 import type { AppDispatch, RootState } from "../store/store";
 import { editUser, fetchData } from "../store/usersReducer";
 import { Bounce, toast, ToastContainer } from "react-toastify";
+import { SidebarDasboardMobile } from "../components/SidebarDasboardMobile";
 
 export const Dashboard = () => {
 	const navigate = useNavigate();
@@ -31,7 +32,11 @@ export const Dashboard = () => {
 		setEditBoard(null);
 	};
 	const onCreateBoard = (title: string, image: string): void => {
-		if (!title.trim() || !currentUser) return;
+		if (!title.trim()) {
+			toast.error("Tên board không được để trống");
+			return;
+		}
+		if (!currentUser) return;
 		if (!editBoard) {
 			const newBoard: Board = {
 				id: Math.floor(Math.random() * 1000000).toString(),
@@ -101,11 +106,17 @@ export const Dashboard = () => {
 				return;
 		}
 	};
+	const [openSidebarMobile, setOpenSidebarMobile] = useState(false);
 	return (
 		<div className="flex flex-col h-screen overflow-y-auto">
-			<Header></Header>
+			<Header openSidebarMobile={() => setOpenSidebarMobile(true)}></Header>
 			<div className="flex flex-1">
 				<SidebarDasboard></SidebarDasboard>
+				{openSidebarMobile && (
+					<SidebarDasboardMobile
+						closeSidebarMobile={() => setOpenSidebarMobile(false)}
+					></SidebarDasboardMobile>
+				)}
 				<Outlet
 					context={{
 						currentUser,

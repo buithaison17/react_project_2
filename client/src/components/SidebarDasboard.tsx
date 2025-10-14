@@ -12,7 +12,7 @@ export const SidebarDasboard = () => {
 	const navigate = useNavigate();
 	const dispatch = useDispatch<AppDispatch>();
 	return (
-		<div className="flex flex-col w-[240px] border-r bg-gray-100">
+		<div className="flex flex-col w-[240px] border-r bg-gray-100 max-sm:hidden">
 			<div className="px-4 pb-6 mt-10 border-b-2">
 				<div className="text-[#212529BF] text-[12px] font-medium">
 					YOUR WORKSPACES

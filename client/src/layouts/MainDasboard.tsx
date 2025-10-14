@@ -43,7 +43,7 @@ export const MainDasboard = () => {
 						</div>
 					</div>
 				</div>
-				<div className="grid grid-cols-4 gap-4 mt-3">
+				<div className="grid grid-cols-4 gap-4 mt-3 max-sm:grid-cols-2">
 					{currentUser?.boards.map((board) => (
 						<CardDasboard
 							key={board.id}
@@ -65,7 +65,7 @@ export const MainDasboard = () => {
 						Starred Boards
 					</div>
 				</div>
-				<div className="grid grid-cols-4 gap-4 mt-3">
+				<div className="grid grid-cols-4 gap-4 mt-3 max-sm:grid-cols-2">
 					{currentUser?.boards
 						.filter((board) => board.type === "starred")
 						.map((board) => (
