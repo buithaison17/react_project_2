@@ -119,7 +119,11 @@ export const ModalAddDate = ({ task, onClose, onAdd }: Props) => {
 						Start date
 					</div>
 					<div className="flex items-center gap-3">
-						<input onChange={handleEnableStartDate} type="checkbox" />
+						<input
+							checked={enableStart}
+							onChange={handleEnableStartDate}
+							type="checkbox"
+						/>
 						<input
 							name="startDate"
 							value={formatDate(inputDate.startDate)}
@@ -140,7 +144,11 @@ export const ModalAddDate = ({ task, onClose, onAdd }: Props) => {
 						Due date
 					</div>
 					<div className="flex items-center gap-3">
-						<input onChange={handleEnableDueDate} type="checkbox" />
+						<input
+							checked={enableDue}
+							onChange={handleEnableDueDate}
+							type="checkbox"
+						/>
 						<input
 							value={formatDate(inputDate.dueDate)}
 							onChange={handleInputChange}

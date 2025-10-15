@@ -4,7 +4,7 @@ import SearchIcon from "@mui/icons-material/Search";
 import MenuIcon from "@mui/icons-material/Menu";
 
 interface Props {
-	openSidebarMobile: () => void;
+	openSidebarMobile?: () => void;
 }
 
 export const Header = ({ openSidebarMobile }: Props) => {
